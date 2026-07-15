@@ -1,6 +1,6 @@
 # Packet Sniffer
 
-A simple packet sniffer built with Python as part of my **Networking and Cybersecurity** learning journey. This project is currently under development, and I will continue adding new features and protocol support as I learn more about networking and cybersecurity.
+A simple packet sniffer built with Python as part of my **Networking, Cybersecurity Python Programming** learning journey. This project is currently under development, and I will continue adding new features and protocol support as I learn more about networking and cybersecurity.
 
 > **Status:** 🚧 Under Development
 
