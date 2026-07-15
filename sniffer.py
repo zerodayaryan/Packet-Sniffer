@@ -1,11 +1,20 @@
-#Use scapy to capture and parse packets on your own network interface. Log source/destination IPs, protocols, and payload sizes. 
-# Good next step: build a simple dashboard (matplotlib or a live terminal UI) showing traffic by protocol.
 import scapy.all as scapy
 import json
+import argparse
 
-def capPackets():
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i","-interface", dest = "interface", help = "Enter the interface name")
+    parser.add_argument("-c","-count", dest = "count",type = int, help="Enter how many packets to capture. 0 represents infinite packets")
+    options = parser.parse_args()
+    if not options.interface or not options.count:
+        parser.error("[-] Please enter valid interface")
+        
+    return options.interface, options.count
+    
+def capPackets(interface, count):
     packets={}
-    pkts = scapy.sniff(count = 5)
+    pkts = scapy.sniff(count = count, iface = interface)
     for i in range(len(pkts)):
         if "IP" in pkts[i]:
             prtcl = pkts[i]["IP"].proto
@@ -24,4 +33,5 @@ def capPackets():
     print(packets)
     
 
-capPackets()
+interface, count = get_args()
+cap = capPackets(interface, count)
