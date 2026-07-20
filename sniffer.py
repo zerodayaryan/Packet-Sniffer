@@ -49,7 +49,8 @@ def parseIP(pkts, i, packets):  # Function to parse IPv4 packets
         packets[i].update(udpPkt(pkts, i))
     elif "TCP" in pkts[i]:
         packets[i].update(tcpPkt(pkts, i))
-
+    elif "ICMP" in pkts[i]:
+        packets[i].update(icmpPkt(pkts,i))
 
 def parseIP6(pkts, i, packets):  # Function to parse IPV6 packets
     packets[i] = {
@@ -84,7 +85,34 @@ def tcpPkt(pkts, i):
     }
     return tcp
 
+def icmpPkt(pkts,i):
+    if pkts[i]["ICMP"].type == 0 or pkts[i]["ICMP"].type == 8:
+        icmp = {
+            "Protocol":"ICMP - Query message",
+            "Type":pkts[i]["ICMP"].type,
+            "ID":pkts[i]["ICMP"].id,
+            "Sequence":pkts[i]["ICMP"].seq,
+            "Payload":pkts[i]["ICMP"].length
+        }
+        return icmp
+    elif pkts[i]["ICMP"].type == 3 or pkts[i]["ICMP"].type == 5 or pkts[i]["ICMP"].type == 11 or pkts[i]["ICMP"].type == 12:
+        icmp={
+            "Protocol":"ICMP - Error message"
+        }
+        return icmp
+    elif pkts[i]["ICMP"].type == 13 or pkts[i]["ICMP"].type == 14:
+        icmp = {
+            "Protocol":"ICMP - Query message",
+            "Type":pkts[i]["ICMP"].type,
+            "ID":pkts[i]["ICMP"].id,
+            "Sequence":pkts[i]["ICMP"].seq,
+            "Origin timestamp":pkts[i]["ICMP"].ts_ori,
+            "Recieve timestamp":pkts[i]["ICMP"].ts_rx,
+            "Transmit timestamp":pkts[i]["ICMP"].ts_tx,
+        }
+        return icmp
 
+        
 def storePacket(packet):  # function to store parsed packets in json format
     with open("output.json", "w") as json_file:
         json.dump(packet, json_file, indent=4)
