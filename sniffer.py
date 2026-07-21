@@ -1,6 +1,7 @@
 import argparse
 import json
 import scapy.all as scapy
+import threading
 
 def get_args():  # argument parser
     parser = argparse.ArgumentParser()
@@ -28,96 +29,112 @@ def get_args():  # argument parser
 
 
 def capPackets(interface, count):  # function to capture packets
+    pkts = scapy.sniff(count=count, iface=interface, prn=parsePkt)
+
+def parsePkt(pkts):
     packets = {}
-    pkts = scapy.sniff(count=count, iface=interface)
-    for i in range(len(pkts)):
-        if "IP" in pkts[i]:
-            parseIP(pkts, i, packets)
-        elif "IPv6" in pkts[i]:
-            parseIP6(pkts, i, packets)
-        storePacket(packets)
+    if "IP" in pkts:
+        parseIP(pkts, packets)
+        print(packets, flush=True)
+        return packets
+    elif "IPv6" in pkts:
+        parseIP6(pkts, packets)
+        print(packets, flush=True)
+        return packets
 
-
-def parseIP(pkts, i, packets):  # Function to parse IPv4 packets
-    packets[i] = {
+    # storePacket(packets)
+    
+def parseIP(pkts, packets):  # Function to parse IPv4 packets
+    packets.update({
         "type": "IP",
-        "srcIp": pkts[i]["IP"].src,
-        "destIP": pkts[i]["IP"].dst,
-        "payload size": pkts[i]["IP"].len,
-    }
-    if "UDP" in pkts[i]:
-        packets[i].update(udpPkt(pkts, i))
-    elif "TCP" in pkts[i]:
-        packets[i].update(tcpPkt(pkts, i))
-    elif "ICMP" in pkts[i]:
-        packets[i].update(icmpPkt(pkts,i))
+        "srcIp": pkts["IP"].src,
+        "destIP": pkts["IP"].dst,
+        "payload size": pkts["IP"].len,
+    })
+    if "UDP" in pkts:
+        packets.update(udpPkt(pkts))
+    elif "TCP" in pkts:
+        packets.update(tcpPkt(pkts))
+    elif "ICMP" in pkts:
+        packets.update(icmpPkt(pkts))
 
-def parseIP6(pkts, i, packets):  # Function to parse IPV6 packets
-    packets[i] = {
+def parseIP6(pkts, packets):  # Function to parse IPV6 packets
+    packets.update({
         "type": "IPv6",
-        "srcIp": pkts[i]["IPv6"].src,
-        "destIP": pkts[i]["IPv6"].dst,
-        "payload size": pkts[i]["IPv6"].plen,
-    }
-    if "UDP" in pkts[i]:
-        packets[i].update(udpPkt(pkts, i))
-    elif "TCP" in pkts[i]:
-        packets[i].update(tcpPkt(pkts, i))
+        "srcIp": pkts["IPv6"].src,
+        "destIP": pkts["IPv6"].dst,
+        "payload size": pkts["IPv6"].plen,
+    })
+    if "UDP" in pkts:
+        packets.update(udpPkt(pkts))
+    elif "TCP" in pkts:
+        packets.update(tcpPkt(pkts))
+    elif "ICMP" in pkts:
+        packets.update(icmpPkt(pkts))
     return packets
 
 
-def udpPkt(pkts, i):
+def udpPkt(pkts):
     UDP = {
         "Protocol": "UDP",
-        "Src": pkts[i]["UDP"].sport,
-        "Dst": pkts[i]["UDP"].dport,
-        "len": pkts[i]["UDP"].len,
+        "Src": pkts["UDP"].sport,
+        "Dst": pkts["UDP"].dport,
+        "len": pkts["UDP"].len,
     }
     return UDP
 
 
-def tcpPkt(pkts, i):
+def tcpPkt(pkts):
     tcp = {
         "Protocol": "TCP",
-        "Src": pkts[i]["TCP"].sport,
-        "Dst": pkts[i]["TCP"].dport,
-        "Ack": pkts[i]["TCP"].ack,
+        "Src": pkts["TCP"].sport,
+        "Dst": pkts["TCP"].dport,
+        "Ack": pkts["TCP"].ack,
     }
     return tcp
 
-def icmpPkt(pkts,i):
-    if pkts[i]["ICMP"].type == 0 or pkts[i]["ICMP"].type == 8:
+def icmpPkt(pkts):
+    if pkts["ICMP"].type == 0 or pkts["ICMP"].type == 8:
         icmp = {
             "Protocol":"ICMP - Query message",
-            "Type":pkts[i]["ICMP"].type,
-            "ID":pkts[i]["ICMP"].id,
-            "Sequence":pkts[i]["ICMP"].seq,
-            "Payload":pkts[i]["ICMP"].length
+            "Type":pkts["ICMP"].type,
+            "ID":pkts["ICMP"].id,
+            "Sequence":pkts["ICMP"].seq,
+            "Payload":pkts["ICMP"].length
         }
         return icmp
-    elif pkts[i]["ICMP"].type == 3 or pkts[i]["ICMP"].type == 5 or pkts[i]["ICMP"].type == 11 or pkts[i]["ICMP"].type == 12:
+    elif pkts["ICMP"].type == 3 or pkts["ICMP"].type == 5 or pkts["ICMP"].type == 11 or pkts["ICMP"].type == 12:
         icmp={
-            "Protocol":"ICMP - Error message"
+            "Protocol":"ICMP - Error message",
+            "Type":pkts["ICMP"].type,
+            "Code":pkts["ICMP"].code
         }
         return icmp
-    elif pkts[i]["ICMP"].type == 13 or pkts[i]["ICMP"].type == 14:
+    elif pkts["ICMP"].type == 13 or pkts["ICMP"].type == 14:
         icmp = {
             "Protocol":"ICMP - Query message",
-            "Type":pkts[i]["ICMP"].type,
-            "ID":pkts[i]["ICMP"].id,
-            "Sequence":pkts[i]["ICMP"].seq,
-            "Origin timestamp":pkts[i]["ICMP"].ts_ori,
-            "Recieve timestamp":pkts[i]["ICMP"].ts_rx,
-            "Transmit timestamp":pkts[i]["ICMP"].ts_tx,
+            "Type":pkts["ICMP"].type,
+            "Code":pkts["ICMP"].code,
+            "ID":pkts["ICMP"].id,
+            "Sequence":pkts["ICMP"].seq,
+            "Origin timestamp":pkts["ICMP"].ts_ori,
+            "Recieve timestamp":pkts["ICMP"].ts_rx,
+            "Transmit timestamp":pkts["ICMP"].ts_tx,
+        }
+        return icmp
+    else:
+        icmp={
+            "Protocol":"ICMP - Other/Unknown",
+            "Type":pkts["ICMP"].type
         }
         return icmp
 
         
-def storePacket(packet):  # function to store parsed packets in json format
-    with open("output.json", "w") as json_file:
-        json.dump(packet, json_file, indent=4)
-        print(packet)
+# def storePacket(packet):  # function to store parsed packets in json format
+#     with open("output.json", "w") as json_file:
+#         json.dump(packet, json_file, indent=4)
+#         print(packet)
 
 
 interface, count = get_args()
-cap = capPackets(interface, count)
+capPackets(interface, count)
