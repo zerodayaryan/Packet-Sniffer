@@ -2,6 +2,9 @@
 
 A simple packet sniffer built with Python as part of my **Networking, Cybersecurity, Python Programming** learning journey. This project is currently under development, and I will continue adding new features and protocol support as I learn more about networking and cybersecurity.
 
+<img width="1399" height="874" alt="Screenshot 2026-08-17 at 11 56 24 PM" src="https://github.com/user-attachments/assets/879df09e-e128-4f6c-8666-6c03b14782bc" />
+
+
 > **Status:** 🚧 Under Development
 
 ## Features
@@ -48,14 +51,6 @@ This project is still in development, and there are a few known limitations:
    - At the moment, captured packets are only saved to a **JSON** file.
    - A future update will include a **live terminal dashboard** for real-time packet monitoring.
 
-## Future Plans
-
-- Multithreaded packet capture
-- Support for additional network protocols
-- Live terminal dashboard
-- Better filtering options
-- Improved packet analysis
-- Performance optimizations
 
 ## Disclaimer
 
