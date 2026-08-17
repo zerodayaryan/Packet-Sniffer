@@ -2,7 +2,7 @@
 
 A simple packet sniffer built with Python as part of my **Networking, Cybersecurity, Python Programming** learning journey. This project is currently under development, and I will continue adding new features and protocol support as I learn more about networking and cybersecurity.
 
-<img width="1399" height="874" alt="Screenshot 2026-08-17 at 11 56 24 PM" src="https://github.com/user-attachments/assets/879df09e-e128-4f6c-8666-6c03b14782bc" />
+
 
 
 > **Status:** 🚧 Under Development
